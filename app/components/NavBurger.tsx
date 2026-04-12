@@ -14,38 +14,37 @@ export default function NavBurger() {
     const desktopLinks = [
         { name: "Inicio", href: "/" },
         { name: "Acerca de", href: "/acerca-de" },
-        { name: "Cuentas", href: "/cuentas" },
+        { name: "Cuenta", href: "/login" },
     ];
 
     const mobileLinks = [
         { name: "Inicio", href: "/" },
         { name: "Blog", href: "/blog" },
         { name: "Solicitudes", href: "/solicitudes" },
-        { name: "Consultas", href: "/consulta" },
+        { name: "Consultas", href: "/consultas" },
         { name: "Acerca de", href: "/acerca-de" },
-        { name: "Cuentas", href: "/cuentas" },
+        { name: "Cuenta", href: "/login" },
     ];
 
     // Clase común para el estilo "Liquid Glass" en botones
     const glassButtonStyle = `
-    px-4 py-2 rounded-xl transition-all duration-300
-    bg-white/10 backdrop-blur-md border border-white/20
-    hover:bg-white/20 hover:border-white/40 hover:shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]
+    px-4 py-2 rounded-md transition-all duration-300
+    backdrop-blur-md border border-white/10
+    hover:bg-white/10 hover:border-white/10 hover:shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]
     active:scale-95
 `;
 
     return (
-        <header className="flex justify-between items-center sticky top-0 w-full text-white pt-4 pr-10 pl-10">
-            <div className="px-2">
-                <Link
-                    href="/"
-                    className="hover:text-blue-400 transition-colors"
-                >
-                    <h1 className="flex justify-self-center text-2xl font-bold box-content">
-                        Aplicación Web Comunal
-                    </h1>
-                </Link>
-            </div>
+        <header className="flex justify-between items-center sticky top-0 w-full text-white pt-4 pr-10 pl-10 z-20 ">
+            <Link
+                href="/"
+                className="px-4 py-2 rounded-md hover:text-cyan-200 transition-colors hover:shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]
+    active:scale-95"
+            >
+                <h1 className="flex justify-self-center text-2xl font-bold box-content">
+                    Aplicación Web Comunal
+                </h1>
+            </Link>
 
             {/* Desktop & Tablet Navigation (md y superior) */}
             <nav className="hidden md:flex space-x-4">
@@ -55,7 +54,7 @@ export default function NavBurger() {
                         href={link.href}
                         className={`${glassButtonStyle} ${
                             pathname === link.href
-                                ? "bg-blue-500/30 border-blue-400/50 text-blue-300"
+                                ? "bg-white/10 border-blue-400/50 text-cyan-200 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]"
                                 : "text-white"
                         }`}
                     >
@@ -119,3 +118,4 @@ export default function NavBurger() {
         </header>
     );
 }
+
