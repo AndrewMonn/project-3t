@@ -33,10 +33,7 @@ export default function RootLayout({
                 <div className="absolute inset-0 bg-black opacity-40 -z-10">
                     <div className="absolute inset-0 bg-cover bg-center heroImage"></div>
                 </div>
-                <header className="flex justify-between items-center sticky top-0 w-full text-white pt-4 pr-10 pl-10">
-                    <h1 className="flex justify-self-center text-2xl font-bold box-content">
-                        Aplicación Web Comunal
-                    </h1>
+                <header>
                     <NavBurger />
                 </header>
                 {children}
