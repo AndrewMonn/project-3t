@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "Login - Aplicación Web Comunal",
+    title: "Login",
     description:
         "Aplicación web para la comunidad Reina la Cruz por parte del estudiantado de la UNETI PNFII S6A Equipo 9",
 };
@@ -26,17 +26,12 @@ export default function RootLayout({
     return (
         <html lang="es">
             <body
-                className={`flex flex-col justify-around max-md:w-screen h-dvh ${geistSans.variable} ${geistMono.variable} antialiased`}
+                className={`flex flex-col justify-around max-md:w-screen h-dvh ${geistSans.variable} ${geistMono.variable} antialiased box-content`}
             >
-                <div className="absolute inset-0 bg-black opacity-40 -z-10">
-                    <div className="absolute inset-0 bg-cover bg-center shape"></div>
+                <div className="absolute inset-0 bg-black opacity-40 -z-10 h-full w-full">
+                    <div className="relative inset-0 bg-cover bg-center shape h-full w-full"></div>
                 </div>
                 {children}
-                <footer className="flex-col justify-end w-full text-white py-4">
-                    <p className="fixed bottom-2 w-full text-center text-sm">
-                        © 2026 UNETI PNFII 6A Equipo 9 - Derechos Reservados.
-                    </p>
-                </footer>
             </body>
         </html>
     );

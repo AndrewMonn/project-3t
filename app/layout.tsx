@@ -28,18 +28,18 @@ export default function RootLayout({
     return (
         <html lang="es">
             <body
-                className={`flex flex-col justify-around max-md:w-screen h-dvh ${geistSans.variable} ${geistMono.variable} antialiased`}
+                className={`flex flex-col justify-around max-md:w-screen h-dvh ${geistSans.variable} ${geistMono.variable} antialiased box-content`}
             >
-                <div className="absolute inset-0 bg-black opacity-40 -z-10">
-                    <div className="absolute inset-0 bg-cover bg-center heroImage"></div>
+                <div className="absolute inset-0 bg-black opacity-40 -z-10 h-full w-full">
+                    <div className="relative inset-0 bg-cover bg-center heroImage h-full w-full"></div>
                 </div>
-                <header className="absolute top-0 w-full">
+                <header className="relative top-0 w-full">
                     <NavBurger />
                 </header>
                 {children}
                 <NavBasic />
-                <footer className="flex-col justify-end w-full text-white py-4">
-                    <p className="fixed bottom-2 w-full text-center text-sm">
+                <footer className="flex-col justify-end w-full text-white pt-4">
+                    <p className="relative bottom-2 w-full text-center text-sm">
                         © 2026 UNETI PNFII 6A Equipo 9 - Derechos Reservados.
                     </p>
                 </footer>
