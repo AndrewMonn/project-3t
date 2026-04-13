@@ -22,7 +22,7 @@ export default function AcercaDe() {
                 {/* Contenido Principal */}
                 <div className="space-y-6 text-justify">
                     <div>
-                        <h2 className="text-xl font-semibold text-sky-800 mb-2">
+                        <h2 className="text-xl font-semibold text-sky-800 mb-2 text-center">
                             ¿Qué es este sistema?
                         </h2>
                         <p className="leading-relaxed">
