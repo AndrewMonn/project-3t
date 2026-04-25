@@ -30,10 +30,10 @@ export default function RootLayout({
             <body
                 className={`flex flex-col justify-around max-md:w-screen h-dvh ${geistSans.variable} ${geistMono.variable} antialiased box-content`}
             >
-                <div className="absolute inset-0 bg-black opacity-40 -z-10 h-full w-full">
-                    <div className="relative inset-0 bg-cover bg-center heroImage h-full w-full"></div>
+                <div className="fixed inset-0 bg-black opacity-40 -z-10 h-screen w-screen">
+                    <div className="inset-0 bg-cover bg-center heroImage h-full w-full"></div>
                 </div>
-                <header className="relative top-0 w-full">
+                <header className="sticky z-10 top-0 w-full pb-1.5 mb-2 bg-mauve-600/40 backdrop-blur-sm shadow-lg">
                     <NavBurger />
                 </header>
                 {children}

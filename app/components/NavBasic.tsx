@@ -13,7 +13,7 @@ export default function NavBasic() {
     ];
     return (
         <nav
-            className="max-md:hidden flex justify-center space-x-4 box-content"
+            className="max-md:hidden md:flex justify-center space-x-4 box-content"
             id="NavBasic"
         >
             {links.map((link) => (

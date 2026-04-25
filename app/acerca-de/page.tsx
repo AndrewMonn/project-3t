@@ -63,7 +63,7 @@ export default function AcercaDe() {
                     </div>
 
                     {/* Sección de Participantes */}
-                    <footer className="pt-4 border-t border-gray-100">
+                    <div className="pt-4 border-t border-gray-100">
                         <h3 className="text-center font-bold text-gray-700 mb-4">
                             Equipo de Desarrollo (Equipo 9)
                         </h3>
@@ -84,7 +84,7 @@ export default function AcercaDe() {
                         <p className="text-center text-xs mt-4 font-bold italic">
                             Asesoría Académica: Prof. María Herrera (UNETI).
                         </p>
-                    </footer>
+                    </div>
                 </div>
             </section>
         </main>
