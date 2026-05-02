@@ -1,0 +1,225 @@
+{
+  "info": {
+    "name": "Comuna API - Mock",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Colección con requests y cuerpos mock para probar localmente la API (Next.js + MongoDB).\nImportar en Postman, ejecutar /auth/login para obtener token y probar endpoints protegidos."
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
+    { "key": "jwtToken", "value": "", "type": "string" },
+    { "key": "blogId", "value": "", "type": "string" },
+    { "key": "familiaId", "value": "", "type": "string" },
+    { "key": "jornadaId", "value": "", "type": "string" },
+    { "key": "comprobanteId", "value": "", "type": "string" },
+    { "key": "entregaId", "value": "", "type": "string" },
+    { "key": "sectorId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json && json.data && json.data.token) { pm.collectionVariables.set('jwtToken', json.data.token); }",
+                  "pm.test('Login success', () => pm.expect(json.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin Mock\",\n  \"email\": \"newadmin@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"administrador\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": ["const json = pm.response.json(); pm.test('Register executed', () => pm.expect([200,201,409]).to.include(pm.response.code));"] }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Blog",
+      "item": [
+        {
+          "name": "List posts",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/blog" }, "header": [] }
+        },
+        {
+          "name": "Create post",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Comunicado de prueba\",\n  \"contenido\": \"Contenido de prueba para Postman\",\n  \"imagenPortada\": \"/images/cover.jpg\",\n  \"tags\": [\"info\", \"prueba\"]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/blog" }
+          },
+          "event": [
+            { "listen": "test", "script": { "exec": ["const json = pm.response.json(); if (json && json.data && json.data._id) pm.collectionVariables.set('blogId', json.data._id); pm.test('Create post response ok', () => pm.expect(json.success).to.eql(true));"] } }
+          ]
+        },
+        {
+          "name": "Get post by id",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/blog/{{blogId}}" } }
+        },
+        {
+          "name": "Update post",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"titulo\": \"Titulo actualizado desde Postman\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/blog/{{blogId}}" }
+          }
+        },
+        {
+          "name": "Delete post",
+          "request": { "method": "DELETE", "header": [ { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ], "url": { "raw": "{{baseUrl}}/api/blog/{{blogId}}" } }
+        }
+      ]
+    },
+    {
+      "name": "Comprobantes",
+      "item": [
+        {
+          "name": "Upload comprobante (form-data)",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "familiaId", "value": "{{familiaId}}", "type": "text" },
+                { "key": "jornadaId", "value": "{{jornadaId}}", "type": "text" },
+                { "key": "fechaPago", "value": "2026-05-01", "type": "text" },
+                { "key": "referencia", "value": "REF-123456", "type": "text" },
+                { "key": "comprobante", "type": "file", "src": "<select-a-local-file>" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/api/comprobantes" }
+          },
+          "event": [
+            { "listen": "test", "script": { "exec": ["const json = pm.response.json(); if (json && json.data && json.data._id) pm.collectionVariables.set('comprobanteId', json.data._id); pm.test('Upload comprobante', () => pm.expect(json.success).to.eql(true));"] } }
+          ]
+        },
+        {
+          "name": "List comprobantes",
+          "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ], "url": { "raw": "{{baseUrl}}/api/comprobantes" } }
+        },
+        {
+          "name": "Verify comprobante",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"estadoVerificacion\": \"aprobado\",\n  \"comentarioAdmin\": \"Verificado OK\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/comprobantes/{{comprobanteId}}/verificar" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Entregas",
+      "item": [
+        { "name": "List entregas", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ], "url": { "raw": "{{baseUrl}}/api/entregas" } } },
+        {
+          "name": "Create entrega",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"familiaId\": \"{{familiaId}}\",\n  \"jornadaId\": \"{{jornadaId}}\",\n  \"estadoPago\": \"pagado\",\n  \"montoPagado\": 1000,\n  \"fechaPago\": \"2026-05-01\",\n  \"observaciones\": \"Entrega registrada manualmente\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/entregas" }
+          },
+          "event": [ { "listen": "test", "script": { "exec": ["const json = pm.response.json(); if (json && json.data && json.data._id) pm.collectionVariables.set('entregaId', json.data._id); pm.test('Create entrega', () => pm.expect(json.success).to.eql(true));"] } } ]
+        },
+        { "name": "Confirm entrega", "request": { "method": "PUT", "header": [ { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ], "url": { "raw": "{{baseUrl}}/api/entregas/{{entregaId}}/confirmar" } } }
+      ]
+    },
+    {
+      "name": "Familias",
+      "item": [
+        { "name": "List familias", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ], "url": { "raw": "{{baseUrl}}/api/familias" } } },
+        {
+          "name": "Create familia",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jefeDeHogar\": { \"nombre\": \"Juan Pérez\", \"cedula\": \"V-12345678\", \"telefono\": \"+58 412 1234567\" },\n  \"integrantes\": [],\n  \"direccion\": { \"calle\": \"Calle Falsa\", \"nroCasa\": \"12\", \"referencia\": \"Cerca del parque\" },\n  \"sector\": \"{{sectorId}}\",\n  \"esVulnerable\": false\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/familias" }
+          },
+          "event": [ { "listen": "test", "script": { "exec": ["const json = pm.response.json(); if (json && json.data && json.data._id) pm.collectionVariables.set('familiaId', json.data._id); pm.test('Create familia', () => pm.expect(json.success).to.eql(true));"] } } ]
+        },
+        { "name": "Get familia", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ], "url": { "raw": "{{baseUrl}}/api/familias/{{familiaId}}" } } },
+        { "name": "Update familia", "request": { "method": "PUT", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ], "body": { "mode": "raw", "raw": "{\n  \"direccion\": { \"calle\": \"Calle Nueva\", \"nroCasa\": \"99\" }\n}" }, "url": { "raw": "{{baseUrl}}/api/familias/{{familiaId}}" } } },
+        { "name": "Delete familia", "request": { "method": "DELETE", "header": [ { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ], "url": { "raw": "{{baseUrl}}/api/familias/{{familiaId}}" } } }
+      ]
+    },
+    {
+      "name": "Jornadas",
+      "item": [
+        { "name": "List jornadas", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ], "url": { "raw": "{{baseUrl}}/api/jornadas" } } },
+        {
+          "name": "Create jornada",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"tipo\": \"CLAP\",\n  \"fechaJornada\": \"2026-06-01\",\n  \"costo\": 1000,\n  \"descripcion\": \"Jornada de prueba\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/jornadas" }
+          },
+          "event": [ { "listen": "test", "script": { "exec": ["const json = pm.response.json(); if (json && json.data && json.data._id) pm.collectionVariables.set('jornadaId', json.data._id); pm.test('Create jornada', () => pm.expect(json.success).to.eql(true));"] } } ]
+        },
+        { "name": "Get jornada", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ], "url": { "raw": "{{baseUrl}}/api/jornadas/{{jornadaId}}" } } },
+        { "name": "Update jornada", "request": { "method": "PUT", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ], "body": { "mode": "raw", "raw": "{\n  \"estado\": \"cerrado\"\n}" }, "url": { "raw": "{{baseUrl}}/api/jornadas/{{jornadaId}}" } } },
+        { "name": "Delete jornada (admin)", "request": { "method": "DELETE", "header": [ { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ], "url": { "raw": "{{baseUrl}}/api/jornadas/{{jornadaId}}" } } }
+      ]
+    },
+    {
+      "name": "Reportes",
+      "item": [
+        { "name": "Cobertura (por jornada)", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ], "url": { "raw": "{{baseUrl}}/api/reportes/cobertura?jornadaId={{jornadaId}}" } } },
+        { "name": "Listado PDF (generar datos)", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ], "url": { "raw": "{{baseUrl}}/api/reportes/listado-pdf?jornadaId={{jornadaId}}" } } }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        { "name": "List users (admin)", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{jwtToken}}" } ], "url": { "raw": "{{baseUrl}}/api/users" } } }
+      ]
+    }
+  ]
+}
