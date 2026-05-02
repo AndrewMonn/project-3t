@@ -14,10 +14,10 @@ export default function LoginLayout({
 }>) {
     return (
         <>
-            <div className="absolute inset-0 bg-black opacity-40 -z-10 h-full w-full">
-                <div className="relative inset-0 bg-cover bg-center shape h-full w-full"></div>
+            <div className="fixed inset-0 bg-black opacity-40 -z-10 min-h-screen w-full">
+                <div className="absolute inset-0 bg-cover bg-center shape w-full"></div>
             </div>
-            {children}
+            <main>{children}</main>
         </>
     );
 }

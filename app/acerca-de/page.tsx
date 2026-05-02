@@ -49,15 +49,17 @@ export default function AcercaDe() {
                             </ul>
                         </div>
 
-                        <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
-                            <h3 className="font-bold text-indigo-700 mb-2">
+                        <div className="bg-sky-50 p-4 rounded-lg border border-sky-100">
+                            <h3 className="font-bold text-sky-700 mb-2">
                                 Tecnología Utilizada
                             </h3>
                             <p className="text-sm">
-                                Desarrollado con el <strong>Stack MERN</strong>{" "}
-                                (MongoDB, Express, React/Next.js y Node.js),
-                                asegurando una arquitectura moderna, escalable y
-                                de alto rendimiento.
+                                Desarrollo Fullstack{" "}
+                                <strong>Next.js App Router</strong> (MongoDB,
+                                React/Next.js y Node.js, con{" "}
+                                <strong>TypeScript</strong> como lenguaje
+                                principal), asegurando una arquitectura moderna,
+                                escalable y de alto rendimiento.
                             </p>
                         </div>
                     </div>

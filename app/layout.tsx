@@ -36,7 +36,9 @@ export default function RootLayout({
                 <header className="sticky z-10 top-0 w-full pb-1.5 mb-2 bg-mauve-600/40 backdrop-blur-sm shadow-lg">
                     <NavBurger />
                 </header>
-                {children}
+                <main className="flex-1 flex items-center justify-center">
+                    {children}
+                </main>
                 <NavBasic />
                 <footer className="flex-col justify-end w-full text-white pt-4">
                     <p className="relative bottom-2 w-full text-center text-sm">
