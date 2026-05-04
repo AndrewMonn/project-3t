@@ -35,7 +35,7 @@ export default function NavBurger() {
 `;
 
     return (
-        <header className="flex justify-between items-center sticky top-0 w-full text-white pt-4 pr-10 pl-10 z-20 ">
+        <header className="flex justify-between items-center sticky top-0 w-full text-white pt-4 pr-10 pl-10 z-20 pb-1.5 bg-mauve-600/40 shadow-lg">
             <Link
                 href="/"
                 className="px-4 py-2 rounded-md hover:text-cyan-200 transition-colors hover:shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]

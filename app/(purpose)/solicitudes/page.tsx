@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -143,7 +142,7 @@ export default function SolicitudesPage() {
                         Gestión de Solicitudes
                     </h1>
                     <div className="h-1 w-24 mx-auto bg-linear-to-r from-cyan-400 to-blue-500 rounded-full mt-3 mb-4" />
-                    <p className="text-zinc-400">
+                    <p className="text-taupe-200">
                         Registre nuevas entregas para familias beneficiarias
                     </p>
                 </header>
@@ -151,7 +150,7 @@ export default function SolicitudesPage() {
                 <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-xl space-y-6">
                     {/* Búsqueda */}
                     <div>
-                        <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">
+                        <h2 className="text-sm font-semibold text-white uppercase tracking-wider mb-3">
                             Buscar beneficiario
                         </h2>
                         <div className="flex gap-2">
@@ -159,7 +158,7 @@ export default function SolicitudesPage() {
                                 value={cedula}
                                 onChange={(e) => setCedula(e.target.value)}
                                 onKeyDown={(e) => e.key === "Enter" && buscar()}
-                                className="flex-1 p-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-zinc-500 focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400/50 outline-none transition-all"
+                                className="flex-1 p-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-taupe-200 focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400/50 outline-none transition-all"
                                 placeholder="Cédula del Jefe de Familia"
                             />
                             <button
