@@ -87,7 +87,7 @@ export default function NavBurger() {
                 className={`fixed inset-0 m-6 rounded-4xl bg-black/60 backdrop-blur-2xl border border-white/20 shadow-2xl z-50 transform transition-all duration-500 ease-in-out md:hidden ${
                     isOpen
                         ? "translate-y-0 opacity-100"
-                        : "-translate-y-[120%] opacity-0"
+                        : "translate-y-[-120%] opacity-0"
                 }`}
             >
                 <nav className="flex flex-col items-center justify-center h-full space-y-6 p-8">

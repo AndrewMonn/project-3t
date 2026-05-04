@@ -34,7 +34,7 @@ export default function RootLayout({
                     <div className="inset-0 bg-cover bg-center heroImage h-full w-full"></div>
                 </div>
                 <header className="sticky z-10 top-0 w-full pb-1.5 mb-2 bg-mauve-600/40 backdrop-blur-sm shadow-lg">
-                    <NavBurger />
+                    <NavBurger/>
                 </header>
                 <main className="flex-1 flex items-center justify-center">
                     {children}
