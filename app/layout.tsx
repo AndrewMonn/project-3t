@@ -33,10 +33,10 @@ export default function RootLayout({
                 <div className="fixed inset-0 bg-black opacity-40 -z-10 h-screen w-screen">
                     <div className="inset-0 bg-cover bg-center heroImage h-full w-full"></div>
                 </div>
-                <header className="sticky z-10 top-0 w-full pb-1.5 mb-2 bg-mauve-600/40 backdrop-blur-sm shadow-lg">
-                    <NavBurger />
-                </header>
-                {children}
+                <NavBurger />
+                <main className="flex-1 flex items-center justify-center">
+                    {children}
+                </main>
                 <NavBasic />
                 <footer className="flex-col justify-end w-full text-white pt-4">
                     <p className="relative bottom-2 w-full text-center text-sm">

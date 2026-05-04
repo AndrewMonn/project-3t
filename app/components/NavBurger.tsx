@@ -35,7 +35,7 @@ export default function NavBurger() {
 `;
 
     return (
-        <header className="flex justify-between items-center sticky top-0 w-full text-white pt-4 pr-10 pl-10 z-20 ">
+        <header className="flex justify-between items-center sticky top-0 w-full text-white pt-4 pr-10 pl-10 z-20 pb-1.5 bg-mauve-600/40 shadow-lg">
             <Link
                 href="/"
                 className="px-4 py-2 rounded-md hover:text-cyan-200 transition-colors hover:shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]
@@ -87,7 +87,7 @@ export default function NavBurger() {
                 className={`fixed inset-0 m-6 rounded-4xl bg-black/60 backdrop-blur-2xl border border-white/20 shadow-2xl z-50 transform transition-all duration-500 ease-in-out md:hidden ${
                     isOpen
                         ? "translate-y-0 opacity-100"
-                        : "-translate-y-[120%] opacity-0"
+                        : "translate-y-[-120%] opacity-0"
                 }`}
             >
                 <nav className="flex flex-col items-center justify-center h-full space-y-6 p-8">
