@@ -1,6 +1,7 @@
 // Modelo de Familia beneficiaria
 // Cada familia tiene un jefe de hogar, integrantes, dirección y sector
 import mongoose, { Schema, Document, Types } from 'mongoose';
+import './Sector';
 
 export interface IFamilia extends Document {
   jefeDeHogar: { nombre: string; cedula: string; telefono: string }; // Datos del jefe de hogar
@@ -35,8 +36,7 @@ const FamiliaSchema = new Schema<IFamilia>(
   {
     timestamps: true,
     toJSON: {
-      // Elimina __v al serializar
-      transform: (_doc, ret) => { delete ret.__v; return ret; }
+      transform: (_doc, ret) => { delete (ret as any).__v; return ret; }
     }
   }
 );

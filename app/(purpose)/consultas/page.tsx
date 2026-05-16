@@ -1,5 +1,7 @@
 "use client";
 
+// @docs: Added inline comprobante upload form for pendiente-type entregas
+// @docs: Shows "+ Cargar Comprobante de Pago" button, expands to date/reference/file form
 import { useState } from "react";
 
 interface JefeHogar {
@@ -41,6 +43,8 @@ interface Entrega {
     _id: string;
     familiaId: { _id: string; jefeDeHogar: { nombre: string; cedula: string } };
     jornadaId: Jornada;
+    tipoSolicitud?: "beneficio" | "otra";
+    asunto?: string;
     estadoPago: "pendiente" | "pagado" | "verificado";
     montoPagado: number;
     fechaPago?: string;
@@ -55,12 +59,19 @@ export default function ConsultasPage() {
     const [tipo, setTipo] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [uploadForm, setUploadForm] = useState<Record<string, boolean>>({});
+    const [uploadData, setUploadData] = useState<Record<string, { fechaPago: string; referencia: string; archivo: File | null }>>({});
+    const [uploading, setUploading] = useState<Record<string, boolean>>({});
+    const [uploadMsg, setUploadMsg] = useState<Record<string, { ok: boolean; text: string }>>({});
 
     async function buscar() {
         setFamilia(null);
         setEntregas([]);
         setTipo("");
         setError(null);
+        setUploadForm({});
+        setUploadData({});
+        setUploadMsg({});
 
         if (!cedula.trim()) {
             setError("Ingrese una cédula");
@@ -102,12 +113,79 @@ export default function ConsultasPage() {
         }
     }
 
+    function toggleUpload(entregaId: string) {
+        setUploadForm((prev) => ({ ...prev, [entregaId]: !prev[entregaId] }));
+        if (!uploadData[entregaId]) {
+            setUploadData((prev) => ({
+                ...prev,
+                [entregaId]: { fechaPago: "", referencia: "", archivo: null },
+            }));
+        }
+        setUploadMsg((prev) => {
+            const next = { ...prev };
+            delete next[entregaId];
+            return next;
+        });
+    }
+
+    async function enviarComprobante(entregaId: string) {
+        const data = uploadData[entregaId];
+        if (!data?.fechaPago || !data?.referencia.trim() || !data?.archivo) {
+            setUploadMsg((prev) => ({ ...prev, [entregaId]: { ok: false, text: "Fecha, referencia y archivo son obligatorios" } }));
+            return;
+        }
+
+        const entrega = entregas.find((e) => e._id === entregaId);
+        if (!entrega) return;
+
+        setUploading((prev) => ({ ...prev, [entregaId]: true }));
+        try {
+            const formData = new FormData();
+            formData.append("familiaId", entrega.familiaId._id);
+            formData.append("jornadaId", entrega.jornadaId._id);
+            formData.append("fechaPago", data.fechaPago);
+            formData.append("referencia", data.referencia.trim());
+            formData.append("comprobante", data.archivo);
+
+            const res = await fetch("/api/comprobantes", {
+                method: "POST",
+                body: formData,
+            });
+            const json = await res.json();
+
+            if (!res.ok || !json.success) {
+                if (res.status === 401) {
+                    setUploadMsg((prev) => ({ ...prev, [entregaId]: { ok: false, text: "Debe iniciar sesión para cargar comprobantes" } }));
+                } else {
+                    setUploadMsg((prev) => ({ ...prev, [entregaId]: { ok: false, text: json.message || "Error al subir comprobante" } }));
+                }
+                return;
+            }
+
+            setUploadMsg((prev) => ({ ...prev, [entregaId]: { ok: true, text: "Comprobante subido exitosamente" } }));
+            setUploadForm((prev) => ({ ...prev, [entregaId]: false }));
+
+            // Refresh entregas
+            const resEntregas = await fetch(
+                `/api/public/entregas?familiaId=${entrega.familiaId._id}`,
+            );
+            const jsonEntregas = await resEntregas.json();
+            if (jsonEntregas.success) {
+                setEntregas(jsonEntregas.data.entregas as Entrega[]);
+            }
+        } catch {
+            setUploadMsg((prev) => ({ ...prev, [entregaId]: { ok: false, text: "Error de conexión" } }));
+        } finally {
+            setUploading((prev) => ({ ...prev, [entregaId]: false }));
+        }
+    }
+
     const tiposDisponibles = Array.from(
-        new Set(entregas.map((e) => e.jornadaId.tipo)),
+        new Set(entregas.map((e) => e.jornadaId?.tipo || e.asunto || "Otras")),
     );
 
     const entregasFiltradas = tipo
-        ? entregas.filter((e) => e.jornadaId.tipo === tipo)
+        ? entregas.filter((e) => (e.jornadaId?.tipo || e.asunto || "Otras") === tipo)
         : entregas;
 
     const coloresEstatus: Record<string, string> = {
@@ -184,14 +262,14 @@ export default function ConsultasPage() {
                     {tiposDisponibles.length > 0 && (
                         <div className="space-y-3 mb-4">
                             <label className="text-sm font-medium text-zinc-400">
-                                Tipo de Beneficio
+                                Tipo de Solicitud
                             </label>
                             <select
                                 value={tipo}
                                 onChange={(e) => setTipo(e.target.value)}
                                 className="w-full p-2.5 rounded-lg bg-white/5 border border-white/10 text-white outline-none focus:ring-2 focus:ring-cyan-400/50 transition-all"
                             >
-                                <option value="">Todos los beneficios</option>
+                                <option value="">Todas las solicitudes</option>
                                 {tiposDisponibles.map((t) => (
                                     <option
                                         key={t}
@@ -212,7 +290,7 @@ export default function ConsultasPage() {
                                 <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
                                 Historial:{" "}
                                 {tipo ||
-                                    `${entregasFiltradas.length} beneficios`}
+                                    `${entregasFiltradas.length} solicitudes`}
                             </h3>
 
                             {entregasFiltradas.map((entrega) => (
@@ -223,10 +301,10 @@ export default function ConsultasPage() {
                                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                         <div>
                                             <p className="text-xs text-zinc-500 uppercase font-bold">
-                                                Beneficio
+                                                {entrega.tipoSolicitud === "otra" ? "Asunto" : "Beneficio"}
                                             </p>
                                             <p className="text-sm text-zinc-200 font-medium">
-                                                {entrega.jornadaId?.tipo}
+                                                {entrega.asunto || entrega.jornadaId?.tipo || "—"}
                                             </p>
                                         </div>
 
@@ -281,6 +359,99 @@ export default function ConsultasPage() {
                                             </div>
                                         )}
                                     </div>
+
+                                    {/* Upload comprobante button + form */}
+                                    <div className="mt-3 pt-3 border-t border-white/10">
+                                        {entrega.estadoPago === "pendiente" && !uploadForm[entrega._id] && (
+                                            <button
+                                                onClick={() => toggleUpload(entrega._id)}
+                                                className="text-xs px-3 py-1.5 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/25 transition-all"
+                                            >
+                                                + Cargar Comprobante de Pago
+                                            </button>
+                                        )}
+
+                                        {uploadForm[entrega._id] && (
+                                            <div className="space-y-3 mt-2">
+                                                <p className="text-xs text-cyan-300 font-semibold uppercase tracking-wider">
+                                                    Registrar comprobante de pago
+                                                </p>
+                                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                                    <div>
+                                                        <label className="text-xs text-zinc-500 mb-1 block">
+                                                            Fecha de pago
+                                                        </label>
+                                                        <input
+                                                            type="date"
+                                                            value={uploadData[entrega._id]?.fechaPago || ""}
+                                                            onChange={(e) =>
+                                                                setUploadData((prev) => ({
+                                                                    ...prev,
+                                                                    [entrega._id]: { ...prev[entrega._id], fechaPago: e.target.value },
+                                                                }))
+                                                            }
+                                                            className="w-full p-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm outline-none focus:ring-2 focus:ring-cyan-400/50 transition-all"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-xs text-zinc-500 mb-1 block">
+                                                            Referencia
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={uploadData[entrega._id]?.referencia || ""}
+                                                            onChange={(e) =>
+                                                                setUploadData((prev) => ({
+                                                                    ...prev,
+                                                                    [entrega._id]: { ...prev[entrega._id], referencia: e.target.value },
+                                                                }))
+                                                            }
+                                                            className="w-full p-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm outline-none focus:ring-2 focus:ring-cyan-400/50 transition-all"
+                                                            placeholder="Nro. de referencia"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-xs text-zinc-500 mb-1 block">
+                                                            Archivo
+                                                        </label>
+                                                        <input
+                                                            type="file"
+                                                            accept="image/jpeg,image/png,image/webp"
+                                                            onChange={(e) =>
+                                                                setUploadData((prev) => ({
+                                                                    ...prev,
+                                                                    [entrega._id]: { ...prev[entrega._id], archivo: e.target.files?.[0] || null },
+                                                                }))
+                                                            }
+                                                            className="w-full text-sm text-zinc-400 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-white/10 file:text-white hover:file:bg-white/15 transition-all"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {uploadMsg[entrega._id] && (
+                                                    <div className={`p-2 rounded-lg text-xs ${uploadMsg[entrega._id].ok ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-300" : "bg-rose-500/10 border border-rose-500/30 text-rose-300"}`}>
+                                                        {uploadMsg[entrega._id].text}
+                                                    </div>
+                                                )}
+
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => toggleUpload(entrega._id)}
+                                                        className="px-3 py-1.5 rounded-lg bg-white/10 border border-white/10 text-white text-xs hover:bg-white/15 transition-all"
+                                                    >
+                                                        Cancelar
+                                                    </button>
+                                                    <button
+                                                        onClick={() => enviarComprobante(entrega._id)}
+                                                        disabled={uploading[entrega._id]}
+                                                        className="px-3 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs hover:bg-emerald-500/30 transition-all disabled:opacity-40"
+                                                    >
+                                                        {uploading[entrega._id] ? "Subiendo..." : "Subir Comprobante"}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -289,7 +460,7 @@ export default function ConsultasPage() {
                     {/* Sin entregas */}
                     {familia && entregas.length === 0 && (
                         <div className="text-center py-8 text-zinc-500">
-                            <p>Esta familia no tiene entregas registradas</p>
+                            <p>Esta familia no tiene solicitudes registradas</p>
                         </div>
                     )}
                 </div>

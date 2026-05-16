@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
       return jsonResponse(false, null, 'Credenciales inválidas', 401);
     }
 
+    // @docs: compare via User model method (bcrypt.compare), password field selected via .select('+password')
     const isValidPassword = await user.comparePassword(password);
     if (!isValidPassword) {
       return jsonResponse(false, null, 'Credenciales inválidas', 401);

@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Familia from '@/models/Familia';
+import Sector from '@/models/Sector';
 import { withAuth, jsonResponse } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {

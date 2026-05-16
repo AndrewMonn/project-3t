@@ -24,17 +24,16 @@ const UserSchema = new Schema<IUser>(
     timestamps: true,
     toJSON: {
       // Elimina password y __v al serializar
-      transform: (_doc, ret) => { delete ret.password; delete ret.__v; return ret; }
+      transform: (_doc, ret) => { delete (ret as any).password; delete (ret as any).__v; return ret; }
     }
   }
 );
 
 // Antes de guardar, hashea la contraseña si fue modificada
-UserSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+UserSchema.pre('save', async function () {
+  if (!this.isModified('password')) return;
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
 // Método para comparar contraseña en login

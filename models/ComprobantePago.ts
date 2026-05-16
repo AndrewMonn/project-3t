@@ -24,7 +24,7 @@ const ComprobantePagoSchema = new Schema<IComprobantePago>(
     verificadoPor: { type: Schema.Types.ObjectId, ref: 'User' },
     fechaVerificacion: { type: Date },
   },
-  { timestamps: true, toJSON: { transform: (_doc, ret) => { delete ret.__v; return ret; } } }
+  { timestamps: true, toJSON: { transform: (_doc, ret) => { delete (ret as any).__v; return ret; } } }
 );
 
 export default mongoose.models.ComprobantePago || mongoose.model<IComprobantePago>('ComprobantePago', ComprobantePagoSchema);

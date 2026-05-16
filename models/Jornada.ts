@@ -23,7 +23,7 @@ const JornadaSchema = new Schema<IJornada>(
     timestamps: true,
     toJSON: {
       // Elimina __v al serializar
-      transform: (_doc, ret) => { delete ret.__v; return ret; }
+      transform: (_doc, ret) => { delete (ret as any).__v; return ret; }
     }
   }
 );
