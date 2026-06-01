@@ -126,47 +126,51 @@ function PostModal({ post, onClose }: { post: Post; onClose: () => void }) {
 export default function Blog() {
     // # Este mockPosts es solo para pruebas, debes eliminarlo y usar el estado real que se carga desde la API
 
-    const mockPosts: Post[] = [
-        {
-            _id: "1",
-            titulo: "Inauguración del Nuevo Parque Comunal 'La Esperanza'",
-            contenido:
-                "Hoy celebramos con orgullo la apertura de nuestro nuevo espacio recreativo. Este proyecto, que tomó más de seis meses de trabajo voluntario y gestión vecinal, cuenta con áreas verdes, juegos para niños y una zona de ejercicio al aire libre.\n\nDurante el evento, la directiva agradeció a todos los vecinos que aportaron su grano de arena. El parque estará abierto todos los días de 6:00 AM a 8:00 PM. ¡Cuidemos este espacio que es de todos!\n\nPróximamente estaremos instalando luminarias LED para mejorar la seguridad nocturna en los alrededores.",
-            autor: { name: "Comité de Infraestructura" },
-            imagenPortada:
-                "https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=2072&auto=format&fit=crop",
-            fechaPublicacion: new Date().toISOString(),
-            tags: ["Comunidad", "Obras", "Recreación"],
-        },
-        {
-            _id: "2",
-            titulo: "Jornada de Vacunación y Salud Integral",
-            contenido:
-                "Se informa a todos los residentes que el próximo sábado 15 de mayo contaremos con una jornada especial de salud en el salón de usos múltiples. Se estarán aplicando vacunas de rutina, toma de tensión y consultas pediátricas gratuitas.\n\nEs indispensable traer la cédula de identidad y, en caso de niños, su tarjeta de control de vacunas. ¡La prevención es nuestra mejor herramienta!",
-            autor: { name: "Mireya (Salud)" }, // Usando el nombre guardado en tu contexto
-            imagenPortada:
-                "https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=2070&auto=format&fit=crop",
-            fechaPublicacion: new Date().toISOString(),
-            tags: ["Salud", "Prevención"],
-        },
-    ];
+    // const mockPosts: Post[] = [
+    //     {
+    //         _id: "1",
+    //         titulo: "Inauguración del Nuevo Parque Comunal 'La Esperanza'",
+    //         contenido:
+    //             "Hoy celebramos con orgullo la apertura de nuestro nuevo espacio recreativo. Este proyecto, que tomó más de seis meses de trabajo voluntario y gestión vecinal, cuenta con áreas verdes, juegos para niños y una zona de ejercicio al aire libre.\n\nDurante el evento, la directiva agradeció a todos los vecinos que aportaron su grano de arena. El parque estará abierto todos los días de 6:00 AM a 8:00 PM. ¡Cuidemos este espacio que es de todos!\n\nPróximamente estaremos instalando luminarias LED para mejorar la seguridad nocturna en los alrededores.",
+    //         autor: { name: "Comité de Infraestructura" },
+    //         imagenPortada:
+    //             "https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=2072&auto=format&fit=crop",
+    //         fechaPublicacion: new Date().toISOString(),
+    //         tags: ["Comunidad", "Obras", "Recreación"],
+    //     },
+    //     {
+    //         _id: "2",
+    //         titulo: "Jornada de Vacunación y Salud Integral",
+    //         contenido:
+    //             "Se informa a todos los residentes que el próximo sábado 15 de mayo contaremos con una jornada especial de salud en el salón de usos múltiples. Se estarán aplicando vacunas de rutina, toma de tensión y consultas pediátricas gratuitas.\n\nEs indispensable traer la cédula de identidad y, en caso de niños, su tarjeta de control de vacunas. ¡La prevención es nuestra mejor herramienta!",
+    //         autor: { name: "Mireya (Salud)" }, // Usando el nombre guardado en tu contexto
+    //         imagenPortada:
+    //             "https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=2070&auto=format&fit=crop",
+    //         fechaPublicacion: new Date().toISOString(),
+    //         tags: ["Salud", "Prevención"],
+    //     },
+    // ];
     // # Hasta aquí el mockPosts, recuerda eliminarlo y usar el estado real que se carga desde la API
 
-    /* const [posts, setPosts] = useState<Post[]>([]); */ /* Cambie el const solo para probar el mockup 
+    const [posts, setPosts] = useState<Post[]>(
+        [],
+    ); /* Cambie el const solo para probar el mockup 
     asi que lo debes descomentar para usar el estado real */
-    const [posts, setPosts] = useState<Post[]>(mockPosts);
-    /*const [pagination, setPagination] = useState<Pagination | null>(null); */ /* Esta es la paginacion real descomentarla */
+    // const [posts, setPosts] = useState<Post[]>(mockPosts);
+    const [pagination, setPagination] = useState<Pagination | null>(
+        null,
+    ); /* Esta es la paginacion real descomentarla */
     // # Esta paginacion es solo para pruebas, debes eliminarlo y usar el estado real que se carga desde la API
-    const [pagination, setPagination] = useState<Pagination | null>({
-        page: 1,
-        limit: 9,
-        total: 2,
-        totalPages: 1,
-    });
+    // const [pagination, setPagination] = useState<Pagination | null>({
+    //     page: 1,
+    //     limit: 9,
+    //     total: 2,
+    //     totalPages: 1,
+    // });
     // Aqui termina la paginacion de prueba, recuerda eliminarla y usar el estado real que se carga desde la API
 
     const [loading, setLoading] =
-        useState(false); /* Debe estar en true pero Puse el estado en 
+        useState(true); /* Debe estar en true pero Puse el estado en 
         false para que no cargara el skeleton 
         y poder probar un mockup */
     const [selectedPost, setSelectedPost] = useState<Post | null>(null);

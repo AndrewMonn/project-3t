@@ -2,16 +2,14 @@ import { NextRequest } from 'next/server';
 import { Types } from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import Familia from '@/models/Familia';
+import Sector from '@/models/Sector';
 import { withAuth, jsonResponse } from '@/lib/auth';
 
-interface RouteParams { params: { id: string }; }
+interface RouteParams { params: Promise<{ id: string }>; }
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
-    const authResult = await withAuth(req);
-    if (!authResult.success) return authResult.response;
-
-    const { id } = params;
+    const { id } = await params;
     if (!Types.ObjectId.isValid(id)) {
       return jsonResponse(false, null, 'ID de familia inválido', 400);
     }
@@ -28,10 +26,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
 export async function PUT(req: NextRequest, { params }: RouteParams) {
   try {
-    const authResult = await withAuth(req);
-    if (!authResult.success) return authResult.response;
-
-    const { id } = params;
+    const { id } = await params;
     if (!Types.ObjectId.isValid(id)) {
       return jsonResponse(false, null, 'ID de familia inválido', 400);
     }
@@ -75,10 +70,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(req: NextRequest, { params }: RouteParams) {
   try {
-    const authResult = await withAuth(req);
-    if (!authResult.success) return authResult.response;
-
-    const { id } = params;
+    const { id } = await params;
     if (!Types.ObjectId.isValid(id)) {
       return jsonResponse(false, null, 'ID de familia inválido', 400);
     }

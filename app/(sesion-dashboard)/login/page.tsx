@@ -66,6 +66,7 @@ export default function Login() {
         }
 
         setLoading(true);
+        const form = e.currentTarget;
 
         try {
             const res = await fetch("/api/auth/login", {
@@ -81,9 +82,12 @@ export default function Login() {
                 return;
             }
 
-            // Guarda token y datos de usuario
+            if (!json.data?.token) {
+                throw new Error(json.message || 'Respuesta inválida del servidor');
+            }
+
             const remember = (
-                e.currentTarget.elements.namedItem(
+                form.elements.namedItem(
                     "remember",
                 ) as HTMLInputElement
             )?.checked;
@@ -91,10 +95,10 @@ export default function Login() {
             storage.setItem("token", json.data.token);
             storage.setItem("user", JSON.stringify(json.data.user));
 
-            router.push("/");
-            router.refresh();
-        } catch {
-            setError("Error de conexión. Intente nuevamente.");
+            router.push("/dashboard");
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'Error de conexión. Intente nuevamente.';
+            setError(msg);
         } finally {
             setLoading(false);
         }

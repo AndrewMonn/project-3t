@@ -5,17 +5,16 @@ import ComprobantePago from '@/models/ComprobantePago';
 import Entrega from '@/models/Entrega';
 import { withRole, jsonResponse } from '@/lib/auth';
 
-interface RouteParams { params: { id: string }; }
+interface RouteParams { params: Promise<{ id: string }>; }
 
 export async function PUT(req: NextRequest, { params }: RouteParams) {
   try {
-    const authResult = await withRole(req, ['administrador', 'vocero']);
-    if (!authResult.success) return authResult.response;
-
-    const { id } = params;
+    const { id } = await params;
     if (!Types.ObjectId.isValid(id)) return jsonResponse(false, null, 'ID de comprobante inválido', 400);
 
     await connectDB();
+    const authResult = await withRole(req, ['administrador']);
+    if (!authResult.success) return authResult.response;
     const body = await req.json();
     const { estadoVerificacion, comentarioAdmin } = body;
 

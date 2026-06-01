@@ -1,5 +1,7 @@
 "use client";
 
+// @docs: Otras Solicitudes — dropdown option "+ Otras Solicitudes" shows asunto text input
+// @docs: Duplicate confirmation — checks existing entregas before submit, asks user to confirm
 import { useState } from "react";
 
 interface JefeHogar {
@@ -28,24 +30,36 @@ interface Jornada {
     estado: string;
 }
 
+const OTRAS_SOLICITUDES_VALUE = "__otras__";
+
 export default function SolicitudesPage() {
     const [cedula, setCedula] = useState("");
     const [familia, setFamilia] = useState<Familia | null>(null);
     const [jornadas, setJornadas] = useState<Jornada[]>([]);
-    const [jornadaId, setJornadaId] = useState("");
+    const [selectedValue, setSelectedValue] = useState("");
+    const [asunto, setAsunto] = useState("");
     const [observaciones, setObservaciones] = useState("");
     const [loading, setLoading] = useState(false);
     const [sending, setSending] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [showDuplicadoConfirm, setShowDuplicadoConfirm] = useState(false);
+
+    const esOtraSolicitud = selectedValue === OTRAS_SOLICITUDES_VALUE;
+
+    function resetForm() {
+        setSelectedValue("");
+        setAsunto("");
+        setObservaciones("");
+        setError(null);
+        setSuccess(null);
+        setShowDuplicadoConfirm(false);
+    }
 
     async function buscar() {
         setFamilia(null);
         setJornadas([]);
-        setJornadaId("");
-        setObservaciones("");
-        setError(null);
-        setSuccess(null);
+        resetForm();
 
         if (!cedula.trim()) {
             setError("Ingrese una cédula");
@@ -87,6 +101,20 @@ export default function SolicitudesPage() {
         }
     }
 
+    async function checkDuplicado(): Promise<boolean> {
+        if (esOtraSolicitud || !selectedValue || !familia) return false;
+        try {
+            const res = await fetch(
+                `/api/public/entregas?familiaId=${familia._id}&jornadaId=${selectedValue}`,
+            );
+            const json = await res.json();
+            if (json.success && json.data.entregas.length > 0) return true;
+        } catch {
+            // If check fails, proceed without confirmation
+        }
+        return false;
+    }
+
     async function enviarSolicitud() {
         setError(null);
         setSuccess(null);
@@ -95,37 +123,59 @@ export default function SolicitudesPage() {
             setError("Busque una familia primero");
             return;
         }
-        if (!jornadaId) {
-            setError("Seleccione una jornada");
-            return;
+
+        if (esOtraSolicitud) {
+            if (!asunto.trim()) {
+                setError("Ingrese el asunto de la solicitud");
+                return;
+            }
+        } else {
+            if (!selectedValue) {
+                setError("Seleccione una jornada");
+                return;
+            }
+        }
+
+        // Check for duplicates only for benefit-type (not "Otras")
+        if (!esOtraSolicitud && !showDuplicadoConfirm) {
+            const esDuplicado = await checkDuplicado();
+            if (esDuplicado) {
+                setShowDuplicadoConfirm(true);
+                return;
+            }
         }
 
         setSending(true);
         try {
+            const body: Record<string, any> = {
+                familiaId: familia._id,
+                observaciones: observaciones.trim() || undefined,
+            };
+
+            if (esOtraSolicitud) {
+                body.tipoSolicitud = "otra";
+                body.asunto = asunto.trim();
+            } else {
+                body.tipoSolicitud = "beneficio";
+                body.jornadaId = selectedValue;
+            }
+
             const res = await fetch("/api/public/entregas", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    familiaId: familia._id,
-                    jornadaId,
-                    observaciones: observaciones.trim() || undefined,
-                }),
+                body: JSON.stringify(body),
             });
             const json = await res.json();
 
             if (!res.ok || !json.success) {
-                if (res.status === 409) {
-                    setError(
-                        "Esta familia ya tiene una entrega registrada para esta jornada",
-                    );
-                } else {
-                    setError(json.message || "Error al registrar la entrega");
-                }
+                setError(json.message || "Error al registrar la solicitud");
                 return;
             }
 
             setSuccess("Solicitud enviada con éxito");
-            setJornadaId("");
+            setShowDuplicadoConfirm(false);
+            setSelectedValue("");
+            setAsunto("");
             setObservaciones("");
         } catch {
             setError("Error de conexión. Intente nuevamente.");
@@ -143,7 +193,7 @@ export default function SolicitudesPage() {
                     </h1>
                     <div className="h-1 w-24 mx-auto bg-linear-to-r from-cyan-400 to-blue-500 rounded-full mt-3 mb-4" />
                     <p className="text-taupe-200">
-                        Registre nuevas entregas para familias beneficiarias
+                        Registre nuevas solicitudes para las familias beneficiarias
                     </p>
                 </header>
 
@@ -183,8 +233,34 @@ export default function SolicitudesPage() {
                         </div>
                     )}
 
+                    {/* Confirmación de duplicado */}
+                    {showDuplicadoConfirm && (
+                        <div className="p-4 rounded-lg border border-amber-500/30 bg-amber-500/10">
+                            <p className="text-amber-300 text-sm font-medium mb-3">
+                                Esta familia ya tiene una solicitud registrada para este beneficio. ¿Desea crear una nueva solicitud duplicada?
+                            </p>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setShowDuplicadoConfirm(false)}
+                                    className="px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm hover:bg-white/15 transition-all"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setShowDuplicadoConfirm(false);
+                                        enviarSolicitud();
+                                    }}
+                                    className="px-4 py-2 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-300 text-sm hover:bg-amber-500/30 transition-all"
+                                >
+                                    Confirmar y enviar
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Familia encontrada */}
-                    {familia && (
+                    {familia && !showDuplicadoConfirm && (
                         <div className="bg-white/5 border border-white/10 rounded-lg p-4">
                             <p className="text-xs text-cyan-300 font-semibold uppercase tracking-wider mb-1">
                                 Beneficiario
@@ -205,7 +281,7 @@ export default function SolicitudesPage() {
                     )}
 
                     {/* Formulario de solicitud */}
-                    {familia && (
+                    {familia && !showDuplicadoConfirm && (
                         <div className="space-y-4">
                             <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
                                 Nueva solicitud
@@ -213,17 +289,18 @@ export default function SolicitudesPage() {
 
                             <div>
                                 <label className="text-sm font-medium text-zinc-400 mb-1 block">
-                                    Tipo de Beneficio / Jornada
+                                    Tipo de solicitud
                                 </label>
                                 <select
-                                    value={jornadaId}
-                                    onChange={(e) =>
-                                        setJornadaId(e.target.value)
-                                    }
+                                    value={selectedValue}
+                                    onChange={(e) => {
+                                        setSelectedValue(e.target.value);
+                                        setError(null);
+                                    }}
                                     className="w-full p-2.5 rounded-lg bg-white/5 border border-white/10 text-white outline-none focus:ring-2 focus:ring-cyan-400/50 transition-all"
                                 >
                                     <option value="">
-                                        Seleccione una jornada...
+                                        Seleccione un tipo...
                                     </option>
                                     {jornadas.map((j) => (
                                         <option
@@ -239,18 +316,41 @@ export default function SolicitudesPage() {
                                             {j.costo.toLocaleString("es-VE")})
                                         </option>
                                     ))}
+                                    <option
+                                        value={OTRAS_SOLICITUDES_VALUE}
+                                        className="bg-zinc-900 text-cyan-300"
+                                    >
+                                        + Otras Solicitudes
+                                    </option>
                                 </select>
                             </div>
 
-                            {jornadas.length === 0 && familia && (
+                            {jornadas.length === 0 && !esOtraSolicitud && (
                                 <p className="text-sm text-zinc-500 italic">
                                     No hay jornadas activas disponibles
                                 </p>
                             )}
 
+                            {/* Asunto para Otras Solicitudes */}
+                            {esOtraSolicitud && (
+                                <div>
+                                    <label className="text-sm font-medium text-zinc-400 mb-1 block">
+                                        Asunto de la Solicitud
+                                    </label>
+                                    <input
+                                        value={asunto}
+                                        onChange={(e) =>
+                                            setAsunto(e.target.value)
+                                        }
+                                        className="w-full p-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-zinc-500 outline-none focus:ring-2 focus:ring-cyan-400/50 transition-all"
+                                        placeholder="Ej: Solicitud de beca estudiantil"
+                                    />
+                                </div>
+                            )}
+
                             <div>
                                 <label className="text-sm font-medium text-zinc-400 mb-1 block">
-                                    Observaciones (opcional)
+                                    Descripción {!esOtraSolicitud && "(opcional)"}
                                 </label>
                                 <textarea
                                     value={observaciones}
@@ -258,7 +358,11 @@ export default function SolicitudesPage() {
                                         setObservaciones(e.target.value)
                                     }
                                     className="w-full p-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-zinc-500 outline-none focus:ring-2 focus:ring-cyan-400/50 transition-all min-h-24 resize-y"
-                                    placeholder="Detalles adicionales..."
+                                    placeholder={
+                                        esOtraSolicitud
+                                            ? "Describa detalladamente su solicitud..."
+                                            : "Detalles adicionales..."
+                                    }
                                 />
                             </div>
 

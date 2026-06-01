@@ -13,6 +13,9 @@ export default function NavBurger() {
     // Definimos las rutas
     const desktopLinks = [
         { name: "Inicio", href: "/" },
+        { name: "Blog", href: "/blog" },
+        { name: "Solicitudes", href: "/solicitudes" },
+        { name: "Consultas", href: "/consultas" },
         { name: "Acerca de", href: "/acerca-de" },
         { name: "Cuenta", href: "/login" },
     ];

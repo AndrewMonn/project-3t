@@ -10,6 +10,7 @@ export default function NavBasic() {
         { name: "Blog", href: "/blog" },
         { name: "Solicitudes", href: "/solicitudes" },
         { name: "Consultas", href: "/consultas" },
+    
     ];
     return (
         <nav

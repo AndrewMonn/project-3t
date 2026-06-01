@@ -66,4 +66,7 @@ Thumbs.db
 # ==========================================
 .vercel
 /.opencode
+/.agents
 AGENTS.md
+/stch_p
+skills-lock.json

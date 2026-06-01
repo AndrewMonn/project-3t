@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
 
     const [entregas, total] = await Promise.all([
       Entrega.find(query)
-        .populate('familiaId', 'jefeDeHogar.nombre jefeDeHogar.cedula direccion')
+        .populate({ path: 'familiaId', select: 'jefeDeHogar.nombre jefeDeHogar.cedula direccion sector', populate: { path: 'sector', select: 'name' } })
         .populate('jornadaId', 'tipo fechaJornada costo estado')
         .sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
       Entrega.countDocuments(query),
@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
+// @docs: Added tipoSolicitud + asunto support, removed 11000 catch (no unique index)
 export async function POST(req: NextRequest) {
   try {
     const authResult = await withRole(req, ['administrador', 'vocero']);
@@ -47,20 +48,10 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
     const body = await req.json();
-    const { familiaId, jornadaId, estadoPago, montoPagado, fechaPago, observaciones } = body;
+    const { familiaId, jornadaId, tipoSolicitud, asunto, estadoPago, montoPagado, fechaPago, observaciones } = body;
 
-    if (!familiaId || !jornadaId) {
-      return jsonResponse(false, null, 'Familia y jornada son obligatorias', 400);
-    }
-
-    const jornada = await Jornada.findById(jornadaId);
-    if (!jornada) return jsonResponse(false, null, 'Jornada no encontrada', 404);
-
-    const familia = await Familia.findById(familiaId);
-    if (!familia) return jsonResponse(false, null, 'Familia no encontrada', 404);
-
-    if (jornada.estado === 'cerrado') {
-      return jsonResponse(false, null, 'No se pueden registrar entregas en una jornada cerrada', 400);
+    if (!familiaId) {
+      return jsonResponse(false, null, 'Familia es obligatoria', 400);
     }
 
     const validEstados = ['pendiente', 'pagado', 'verificado'];
@@ -68,7 +59,31 @@ export async function POST(req: NextRequest) {
       return jsonResponse(false, null, 'Estado de pago inválido', 400);
     }
 
-    const entregaData: Record<string, any> = { familiaId, jornadaId, estadoPago: estadoPago || 'pendiente' };
+    if (tipoSolicitud === 'otra') {
+      if (!asunto?.trim()) {
+        return jsonResponse(false, null, 'Debe ingresar un asunto para la solicitud', 400);
+      }
+    } else {
+      if (!jornadaId) {
+        return jsonResponse(false, null, 'Jornada es obligatoria para solicitudes de beneficio', 400);
+      }
+      const jornada = await Jornada.findById(jornadaId);
+      if (!jornada) return jsonResponse(false, null, 'Jornada no encontrada', 404);
+      if (jornada.estado === 'cerrado') {
+        return jsonResponse(false, null, 'No se pueden registrar entregas en una jornada cerrada', 400);
+      }
+    }
+
+    const familia = await Familia.findById(familiaId);
+    if (!familia) return jsonResponse(false, null, 'Familia no encontrada', 404);
+
+    const entregaData: Record<string, any> = {
+      familiaId,
+      tipoSolicitud: tipoSolicitud || 'beneficio',
+      estadoPago: estadoPago || 'pendiente'
+    };
+    if (jornadaId) entregaData.jornadaId = jornadaId;
+    if (asunto) entregaData.asunto = asunto.trim();
     if (montoPagado !== undefined) entregaData.montoPagado = montoPagado;
     if (fechaPago) entregaData.fechaPago = new Date(fechaPago);
     if (observaciones) entregaData.observaciones = observaciones.trim();
@@ -83,9 +98,6 @@ export async function POST(req: NextRequest) {
     return jsonResponse(true, entregaPopulada, 'Entrega registrada exitosamente', 201);
   } catch (error: any) {
     console.error('Error al registrar entrega:', error);
-    if (error.code === 11000) {
-      return jsonResponse(false, null, 'Ya existe una entrega para esta familia en esta jornada', 409);
-    }
     return jsonResponse(false, null, 'Error al registrar la entrega', 500);
   }
 }

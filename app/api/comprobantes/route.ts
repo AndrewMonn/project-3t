@@ -1,6 +1,6 @@
 // --- RUTA API: /api/comprobantes ---
 // Maneja la subida y consulta de comprobantes de pago (con archivo adjunto y metadatos).
-// POST: Sube comprobante (requiere autenticación, archivo form-data, vincula familia y jornada).
+// POST: Sube comprobante (público, sin autenticación, archivo form-data, vincula familia y jornada).
 // GET: Lista comprobantes (requiere rol, paginado y filtrable por estado/jornada).
 
 import { NextRequest } from 'next/server';
@@ -23,10 +23,6 @@ import { withAuth, withRole, jsonResponse } from '@/lib/auth';
 // - Crea o actualiza la Entrega relacionada
 export async function POST(req: NextRequest) {
   try {
-    // Validar autenticación
-    const authResult = await withAuth(req);
-    if (!authResult.success) return authResult.response;
-
     await connectDB();
     const formData = await req.formData();
 

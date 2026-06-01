@@ -20,14 +20,13 @@ const PostSchema = new Schema<IPost>(
     tags: { type: [String], default: [] },
     slug: { type: String, unique: true, index: true },
   },
-  { timestamps: true, toJSON: { transform: (_doc, ret) => { delete ret.__v; return ret; } } }
+  { timestamps: true, toJSON: { transform: (_doc, ret) => { delete (ret as any).__v; return ret; } } }
 );
 
-PostSchema.pre('save', function (next) {
+PostSchema.pre('save', function () {
   if (this.isModified('titulo') || !this.slug) {
     this.slug = this.titulo.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').substring(0, 100);
   }
-  next();
 });
 
 export default mongoose.models.Post || mongoose.model<IPost>('Post', PostSchema);
