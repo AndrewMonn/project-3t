@@ -3,6 +3,14 @@
 // @docs: jornadaId now optional (not required for 'otra' tipo)
 import mongoose, { Schema, Document, Types } from 'mongoose';
 
+export interface IHistorialEntry {
+  fecha: Date;
+  usuario: string;
+  usuarioId: Types.ObjectId;
+  accion: 'comentario' | 'cambio_estado';
+  contenido: string;
+}
+
 export interface IEntrega extends Document {
   familiaId: Types.ObjectId;
   jornadaId?: Types.ObjectId;
@@ -14,6 +22,7 @@ export interface IEntrega extends Document {
   confirmacionEntrega: boolean;
   fechaConfirmacion?: Date;
   observaciones?: string;
+  historial: IHistorialEntry[];
 }
 
 const EntregaSchema = new Schema<IEntrega>(
@@ -28,6 +37,16 @@ const EntregaSchema = new Schema<IEntrega>(
     confirmacionEntrega: { type: Boolean, default: false },
     fechaConfirmacion: { type: Date },
     observaciones: { type: String, trim: true },
+    historial: {
+      type: [{
+        fecha: { type: Date, required: true },
+        usuario: { type: String, required: true },
+        usuarioId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+        accion: { type: String, enum: ['comentario', 'cambio_estado'], required: true },
+        contenido: { type: String, required: true },
+      }],
+      default: [],
+    },
   },
   {
     timestamps: true,

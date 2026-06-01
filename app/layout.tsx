@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import NavBurger from "./components/NavBurger";
-import NavBasic from "./components/NavBasic";
+// import NavBasic from "./components/NavBasic"; 
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -37,7 +37,7 @@ export default function RootLayout({
                 <main className="flex-1 flex items-center justify-center">
                     {children}
                 </main>
-                <NavBasic />
+                {/* <NavBasic /> */}
                 <footer className="flex-col justify-end w-full text-white pt-4">
                     <p className="relative bottom-2 w-full text-center text-sm">
                         © 2026 UNETI PNFII 6A Equipo 9 - Derechos Reservados.

@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
 
     const [entregas, total] = await Promise.all([
       Entrega.find(query)
-        .populate('familiaId', 'jefeDeHogar.nombre jefeDeHogar.cedula direccion')
+        .populate({ path: 'familiaId', select: 'jefeDeHogar.nombre jefeDeHogar.cedula direccion sector', populate: { path: 'sector', select: 'name' } })
         .populate('jornadaId', 'tipo fechaJornada costo estado')
         .sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
       Entrega.countDocuments(query),
