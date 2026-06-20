@@ -6,9 +6,10 @@ import UsersPanel from './components/UsersPanel';
 import BlogEditor from './components/BlogEditor';
 import SolicitudesPanel from './components/SolicitudesPanel';
 import AuditReports from './components/AuditReports';
-// Importa los 4 paneles del dashboard
+import LoginAuditPanel from './components/LoginAuditPanel';
+// Importa los paneles del dashboard
 
-type TabId = 'usuarios' | 'blog' | 'solicitudes' | 'reportes';
+type TabId = 'usuarios' | 'blog' | 'solicitudes' | 'reportes' | 'auditoria';
 // Identificadores de las pestañas del dashboard
 
 interface UserInfo {
@@ -24,37 +25,43 @@ const TABS: { id: TabId; label: string; adminOnly?: boolean }[] = [
   { id: 'blog', label: 'Blog' },
   { id: 'solicitudes', label: 'Solicitudes' },
   { id: 'reportes', label: 'Reportes' },
+  { id: 'auditoria', label: 'Auditoría de Accesos', adminOnly: true }, // Solo administradores (el API lo exige)
 ];
 
 export default function DashboardPage() {
   const [user, setUser] = useState<UserInfo | null>(null); // Usuario autenticado
+  const [token, setToken] = useState<string>(''); // Token JWT del usuario autenticado
   const [activeTab, setActiveTab] = useState<TabId>('solicitudes'); // Pestana activa
   const [sidebarOpen, setSidebarOpen] = useState(false); // Sidebar responsive (mobile)
 
-  // Recupera datos del usuario desde el almacenamiento local
+  // Recupera datos del usuario y el token desde el almacenamiento local
   useEffect(() => {
-    const raw = localStorage.getItem('user') || sessionStorage.getItem('user');
-    if (raw) {
-      try { setUser(JSON.parse(raw)); } catch { /* ignora errores de parseo */ }
+    const rawUser = localStorage.getItem('user') || sessionStorage.getItem('user');
+    if (rawUser) {
+      try { setUser(JSON.parse(rawUser)); } catch { /* ignora errores de parseo */ }
     }
+    const rawToken = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (rawToken) setToken(rawToken);
   }, []);
 
   const isAdmin = user?.role === 'administrador'; // Verifica rol administrador
   const visibleTabs = TABS.filter((t) => !t.adminOnly || isAdmin); // Filtra tabs segun rol
 
-  // Si el usuario no es admin y esta en la pestana de usuarios, redirige a solicitudes
+  // Si el usuario no es admin y esta en una pestana de admin, redirige a solicitudes
   useEffect(() => {
-    if (!isAdmin && activeTab === 'usuarios') setActiveTab('solicitudes');
+    const tabActual = TABS.find((t) => t.id === activeTab);
+    if (!isAdmin && tabActual?.adminOnly) setActiveTab('solicitudes');
   }, [isAdmin, activeTab]);
 
   const renderTab = useCallback(() => {
     switch (activeTab) {
       case 'usuarios': return <UsersPanel />;
-      case 'blog': return <BlogEditor />;
+      case 'blog': return <BlogEditor token={token} />;
       case 'solicitudes': return <SolicitudesPanel user={user!} />;
       case 'reportes': return <AuditReports />;
+      case 'auditoria': return <LoginAuditPanel />;
     }
-  }, [activeTab, user]);
+  }, [activeTab, user, token]);
 
   return (
     <div className="flex h-full w-full">
