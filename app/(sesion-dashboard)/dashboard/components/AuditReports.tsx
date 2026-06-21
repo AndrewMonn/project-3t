@@ -19,23 +19,45 @@ interface Entrega {
   createdAt: string;
 }
 
-export default function AuditReports() {
+interface UserInfo {
+  userId: string;
+  email: string;
+  role: string;
+  name?: string;
+}
+
+export default function AuditReports({ user }: { user: UserInfo }) {
   const [entregas, setEntregas] = useState<Entrega[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [ip, setIp] = useState('');
+  const [loadedAt, setLoadedAt] = useState<string>('');
 
   async function fetchData() {
     setLoading(true);
     setError(null);
     try {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      const res = await fetch('/api/entregas?limit=500', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const [res, ipRes] = await Promise.all([
+        fetch('/api/entregas?limit=500', {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch('https://api.ipify.org?format=json').catch(() => null),
+      ]);
       const json = await res.json();
       if (!json.success) throw new Error(json.message);
       setEntregas(json.data.entregas);
+      setLoadedAt(new Date().toLocaleString('es-ES', {
+        day: '2-digit', month: 'long', year: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+      }));
+      if (ipRes) {
+        try {
+          const ipJson = await ipRes.json();
+          if (ipJson?.ip) setIp(ipJson.ip);
+        } catch { /* ignora error de parseo IP */ }
+      }
     } catch (e: any) {
       setError(e.message || 'Error al cargar datos');
     } finally {
@@ -88,71 +110,104 @@ export default function AuditReports() {
         }
       }
 
-      page.drawText('REPORTE DE AUDITOR\u00cdA - SOLICITUDES', {
-        x: margin, y, size: 18, color: rgb(0.1, 0.1, 0.1),
+      page.drawText('Comuna Una Sola Fuerza - Consejo Comunal Reina La Cruz', {
+        x: margin, y, size: 14, color: rgb(0, 0.4, 0.8),
       });
-      y -= 30;
-
-      page.drawText(`Generado: ${new Date().toLocaleString('es-ES')}`, {
-        x: margin, y, size: 10, color: rgb(0.4, 0.4, 0.4),
-      });
-      y -= 30;
+      y -= 22;
 
       page.drawRectangle({
-        x: margin, y: y - 10, width: usableWidth, height: 60,
-        color: rgb(0.95, 0.95, 0.95), borderColor: rgb(0.8, 0.8, 0.8), borderWidth: 1,
+        x: margin, y: y - 2, width: usableWidth, height: 1,
+        color: rgb(0, 0.4, 0.8),
+      });
+      y -= 20;
+
+      page.drawText('REPORTE DE AUDITORIA - SOLICITUDES', {
+        x: margin, y, size: 18, color: rgb(0.1, 0.1, 0.1),
+      });
+      y -= 26;
+
+      page.drawRectangle({
+        x: margin, y: y - 4, width: usableWidth, height: 50,
+        color: rgb(0.97, 0.97, 0.97), borderColor: rgb(0.8, 0.8, 0.8), borderWidth: 0.5,
+      });
+      const metaData = [
+        { label: 'Generado por', value: user.name || user.email },
+        { label: 'Rol', value: user.role },
+        { label: 'Fecha', value: new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }) },
+        { label: 'Hora', value: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) },
+        { label: 'IP', value: ip || 'No disponible' },
+      ];
+      let metaX = margin + 8;
+      const metaColWidth = (usableWidth - 16) / metaData.length;
+      for (const m of metaData) {
+        page.drawText(`${m.label}:`, {
+          x: metaX, y: y + 30, size: 7, color: rgb(0.4, 0.4, 0.4),
+        });
+        page.drawText(m.value, {
+          x: metaX, y: y + 18, size: 9, color: rgb(0.1, 0.1, 0.1),
+        });
+        metaX += metaColWidth;
+      }
+      y -= 70;
+
+      page.drawRectangle({
+        x: margin, y: y - 2, width: usableWidth, height: 55,
+        color: rgb(0.95, 0.95, 0.95), borderColor: rgb(0.8, 0.8, 0.8), borderWidth: 0.5,
       });
       const kpiData = [
         { label: 'Total Solicitudes', value: kpis.total },
         { label: 'Pagadas/Verificadas', value: kpis.pagadas },
         { label: 'Pendientes', value: kpis.pendientes },
-        { label: 'Tasa de Resoluci&oacute;n', value: `${kpis.tasaResolucion}%` },
+        { label: 'Tasa de Resolucion', value: `${kpis.tasaResolucion}%` },
         { label: 'Monto Total', value: `$${kpis.totalMonto.toLocaleString()}` },
       ];
       let kpiX = margin + 10;
       for (const k of kpiData) {
-        page.drawText(`${k.label}: ${k.value}`, {
-          x: kpiX, y: y + 28, size: 9, color: rgb(0.2, 0.2, 0.2),
+        page.drawText(k.label, {
+          x: kpiX, y: y + 35, size: 7, color: rgb(0.4, 0.4, 0.4),
+        });
+        page.drawText(`${k.value}`, {
+          x: kpiX, y: y + 18, size: 14, color: rgb(0.1, 0.1, 0.1),
         });
         kpiX += usableWidth / kpiData.length;
       }
-      y -= 90;
+      y -= 80;
 
       for (const [sector, items] of grouped) {
-        addPageIfNeeded(40 + items.length * 22);
+        addPageIfNeeded(50 + items.length * 22);
 
         page.drawRectangle({
-          x: margin, y: y - 2, width: usableWidth, height: 22,
-          color: rgb(0.15, 0.15, 0.15), borderColor: rgb(0, 0, 0), borderWidth: 1,
+          x: margin, y: y - 2, width: usableWidth, height: 24,
+          color: rgb(0.15, 0.15, 0.15), borderColor: rgb(0, 0, 0), borderWidth: 0.5,
         });
         page.drawText(`SECTOR: ${sector}`, {
-          x: margin + 6, y: y + 5, size: 11, color: rgb(1, 1, 1),
+          x: margin + 8, y: y + 6, size: 11, color: rgb(1, 1, 1),
         });
         page.drawText(`Total: ${items.length}`, {
-          x: margin + usableWidth - 60, y: y + 5, size: 11, color: rgb(1, 1, 1),
+          x: margin + usableWidth - 70, y: y + 6, size: 10, color: rgb(1, 1, 1),
         });
-        y -= 24;
+        y -= 26;
 
-        const colWidths = [160, 80, 100, 80, usableWidth - 420];
-        const headers = ['Solicitante', 'C&eacute;dula', 'Tipo', 'Estado', 'Monto'];
+        const colWidths = [155, 75, 100, 75, usableWidth - 405];
+        const headers = ['Solicitante', 'Cedula', 'Tipo', 'Estado', 'Monto'];
         const headerX = [margin];
         for (let i = 1; i < headers.length; i++) {
           headerX.push(headerX[i - 1] + colWidths[i - 1]);
         }
 
         page.drawRectangle({
-          x: margin, y: y - 2, width: usableWidth, height: 18,
-          color: rgb(0.85, 0.85, 0.85), borderColor: rgb(0.6, 0.6, 0.6), borderWidth: 1,
+          x: margin, y: y - 2, width: usableWidth, height: 20,
+          color: rgb(0.85, 0.85, 0.85), borderColor: rgb(0.6, 0.6, 0.6), borderWidth: 0.5,
         });
         for (let i = 0; i < headers.length; i++) {
           page.drawText(headers[i], {
-            x: headerX[i] + 4, y: y + 3, size: 8, color: rgb(0, 0, 0),
+            x: headerX[i] + 5, y: y + 4, size: 8, color: rgb(0, 0, 0),
           });
         }
-        y -= 20;
+        y -= 22;
 
         for (const item of items) {
-          addPageIfNeeded(20);
+          addPageIfNeeded(22);
           const row = [
             item.familiaId?.jefeDeHogar?.nombre || 'N/A',
             item.familiaId?.jefeDeHogar?.cedula || 'N/A',
@@ -162,27 +217,33 @@ export default function AuditReports() {
           ];
 
           page.drawRectangle({
-            x: margin, y: y - 2, width: usableWidth, height: 18,
-            color: rgb(1, 1, 1), borderColor: rgb(0.85, 0.85, 0.85), borderWidth: 0.5,
+            x: margin, y: y - 2, width: usableWidth, height: 20,
+            color: rgb(1, 1, 1), borderColor: rgb(0.9, 0.9, 0.9), borderWidth: 0.3,
           });
           for (let i = 0; i < row.length; i++) {
             page.drawText(row[i], {
-              x: headerX[i] + 4, y: y + 3, size: 8, color: rgb(0.2, 0.2, 0.2),
+              x: headerX[i] + 5, y: y + 4, size: 8, color: rgb(0.2, 0.2, 0.2),
             });
           }
-          y -= 20;
+          y -= 22;
         }
 
-        y -= 10;
+        y -= 8;
       }
 
-      if (y < margin + 40) {
+      if (y < margin + 50) {
         page = pdf.addPage({ size: 'a4' });
         y = pageHeight - margin;
       }
-      y -= 20;
+      y -= 30;
 
-      page.drawText(`Fin del reporte - ${new Date().toLocaleDateString('es-ES')}`, {
+      page.drawRectangle({
+        x: margin, y: y - 2, width: usableWidth, height: 1,
+        color: rgb(0.8, 0.8, 0.8),
+      });
+      y -= 14;
+
+      page.drawText(`Fin del reporte - ${new Date().toLocaleString('es-ES')}`, {
         x: margin, y, size: 9, color: rgb(0.5, 0.5, 0.5),
       });
 
@@ -246,6 +307,25 @@ export default function AuditReports() {
 
       {!loading && !error && (
         <>
+          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 mb-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <span className="text-gray-400 block text-xs uppercase tracking-wider">Generado por</span>
+              <span className="text-white font-medium">{user.name || user.email}</span>
+            </div>
+            <div>
+              <span className="text-gray-400 block text-xs uppercase tracking-wider">Rol</span>
+              <span className="text-white capitalize">{user.role}</span>
+            </div>
+            <div>
+              <span className="text-gray-400 block text-xs uppercase tracking-wider">Fecha y Hora</span>
+              <span className="text-white">{loadedAt || 'Cargando...'}</span>
+            </div>
+            <div>
+              <span className="text-gray-400 block text-xs uppercase tracking-wider">Direcci&oacute;n IP</span>
+              <span className="text-white font-mono">{ip || 'No disponible'}</span>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
             {[
               { label: 'Total Solicitudes', value: kpis.total, color: 'text-white' },

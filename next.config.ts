@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
                 hostname: "images.unsplash.com",
                 pathname: "**",
             },
-                        {
+            {
                 protocol: "https",
                 hostname: "pan-musubi.jp",
                 pathname: "**",

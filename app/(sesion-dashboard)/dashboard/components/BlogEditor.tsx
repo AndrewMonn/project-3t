@@ -1,9 +1,5 @@
-// app/(sesion-dashboard)/dashboard/components/BlogEditor.tsx
-// MODIFICADO: imagenPortada ahora acepta tanto una URL externa como un archivo subido.
-// Si el usuario sube un archivo, se convierte a Base64 en el cliente antes de enviarlo.
-// El campo `imagenPortada` del Post puede ser un Data URL Base64 o una URL normal.
-
 'use client';
+// @panel Editor de Blog — dual-column, subida archivo/URL, vista previa derecha
 
 import { useState, useRef } from 'react';
 
@@ -21,7 +17,6 @@ interface BlogEditorProps {
   onPostCreated?: (post: Post) => void;
 }
 
-/** Convierte un File a Data URL Base64 en el navegador */
 async function fileToBase64Client(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -37,8 +32,8 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 export default function BlogEditor({ token, onPostCreated }: BlogEditorProps) {
   const [titulo, setTitulo]               = useState('');
   const [contenido, setContenido]         = useState('');
-  const [imagenPortada, setImagenPortada] = useState('');   // URL externa o Base64
-  const [imagenPreview, setImagenPreview] = useState('');   // solo para previsualizar
+  const [imagenPortada, setImagenPortada] = useState('');
+  const [imagenPreview, setImagenPreview] = useState('');
   const [imagenFile, setImagenFile]       = useState<File | null>(null);
   const [tags, setTags]                   = useState('');
   const [loading, setLoading]             = useState(false);
@@ -46,12 +41,9 @@ export default function BlogEditor({ token, onPostCreated }: BlogEditorProps) {
   const [success, setSuccess]             = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  /** Maneja la selección de un archivo de imagen */
   async function handleImageFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Validación en cliente
     if (!ALLOWED_TYPES.includes(file.type)) {
       setError('Tipo de archivo no permitido. Use JPG, PNG o WEBP.');
       return;
@@ -60,17 +52,13 @@ export default function BlogEditor({ token, onPostCreated }: BlogEditorProps) {
       setError(`El archivo supera el límite de ${MAX_SIZE_MB}MB.`);
       return;
     }
-
     setError('');
     setImagenFile(file);
-
-    // Convertir a Base64 para previsualizar y enviar
     const dataUrl = await fileToBase64Client(file);
-    setImagenPortada(dataUrl);   // se enviará como Base64 al backend
-    setImagenPreview(dataUrl);   // para mostrar en la previsualización
+    setImagenPortada(dataUrl);
+    setImagenPreview(dataUrl);
   }
 
-  /** Limpia la imagen seleccionada */
   function clearImage() {
     setImagenFile(null);
     setImagenPortada('');
@@ -91,7 +79,7 @@ export default function BlogEditor({ token, onPostCreated }: BlogEditorProps) {
       const body = {
         titulo:        titulo.trim(),
         contenido:     contenido.trim(),
-        imagenPortada: imagenPortada.trim() || undefined,  // Base64 o URL externa
+        imagenPortada: imagenPortada.trim() || undefined,
         tags: tags.split(',').map(t => t.trim()).filter(Boolean),
       };
 
@@ -113,7 +101,6 @@ export default function BlogEditor({ token, onPostCreated }: BlogEditorProps) {
       setTags('');
       clearImage();
       onPostCreated?.(json.data);
-
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -121,145 +108,115 @@ export default function BlogEditor({ token, onPostCreated }: BlogEditorProps) {
     }
   }
 
-  /** Determina si imagenPortada es Base64 o URL externa */
   const isBase64Image = imagenPortada.startsWith('data:image/');
+  const previewTags = tags.split(',').map(t => t.trim()).filter(Boolean);
 
   return (
-    <div className="bg-white rounded-xl shadow p-6 space-y-4">
-      <h2 className="text-lg font-semibold text-gray-800">Nuevo Post</h2>
+    <div>
+      <h2 className="text-xl font-bold text-white mb-6">Editor de Blog</h2>
 
-      {error   && <p className="text-red-600 text-sm">{error}</p>}
-      {success && <p className="text-green-600 text-sm">{success}</p>}
+      {error && (
+        <div className="bg-rose-500/10 border border-rose-500/30 text-rose-400 px-4 py-3 rounded-xl mb-4">{error}</div>
+      )}
+      {success && (
+        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-xl mb-4">{success}</div>
+      )}
 
-      {/* Título */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
-        <input
-          value={titulo}
-          onChange={e => setTitulo(e.target.value)}
-          className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Título del comunicado"
-        />
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 space-y-4">
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">T&iacute;tulo</label>
+            <input value={titulo} onChange={(e) => setTitulo(e.target.value)}
+              className="w-full bg-black/20 border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:outline-none transition-colors placeholder-gray-500"
+              placeholder="T&iacute;tulo del comunicado" />
+          </div>
 
-      {/* Contenido */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Contenido</label>
-        <textarea
-          value={contenido}
-          onChange={e => setContenido(e.target.value)}
-          rows={6}
-          className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Escribe el contenido aquí..."
-        />
-      </div>
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">
+              Imagen de portada <span className="text-gray-500">(opcional — JPG, PNG, WEBP, m&aacute;x. 2MB)</span>
+            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleImageFile}
+              className="hidden"
+            />
+            <div className="flex gap-2 items-center flex-wrap">
+              <button type="button" onClick={() => fileInputRef.current?.click()}
+                className="px-3 py-2 text-sm bg-white/10 border border-white/20 rounded-xl text-gray-300 hover:bg-white/20 transition-colors">
+                {imagenFile ? 'Imagen cargada' : 'Subir imagen'}
+              </button>
+              {imagenFile && (
+                <button type="button" onClick={clearImage}
+                  className="text-xs text-rose-400 hover:text-rose-300 transition-colors">
+                  Quitar
+                </button>
+              )}
+            </div>
+            {!imagenFile && (
+              <input value={imagenPortada} onChange={(e) => { setImagenPortada(e.target.value); setImagenPreview(e.target.value); }}
+                className="mt-2 w-full bg-black/20 border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:outline-none transition-colors placeholder-gray-500"
+                placeholder="O pega URL externa: https://ejemplo.com/imagen.jpg" />
+            )}
+            {imagenFile && (
+              <p className="mt-1 text-xs text-sky-400">La imagen se almacenar&aacute; en la base de datos (Base64)</p>
+            )}
+            {isBase64Image && imagenFile && (
+              <p className="text-xs text-gray-500">Tama&ntilde;o original: {(imagenFile.size / 1024).toFixed(1)} KB</p>
+            )}
+          </div>
 
-      {/* Imagen de portada */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Imagen de portada
-          <span className="ml-1 text-xs text-gray-400">(opcional — JPG, PNG, WEBP, máx. 2MB)</span>
-        </label>
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">Tags <span className="text-gray-500">(separados por coma)</span></label>
+            <input value={tags} onChange={(e) => setTags(e.target.value)}
+              className="w-full bg-black/20 border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:outline-none transition-colors placeholder-gray-500"
+              placeholder="info, aviso, clap" />
+          </div>
 
-        <div className="flex gap-2 items-center">
-          {/* Subir archivo */}
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="px-3 py-2 text-sm border rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-700"
-          >
-            {imagenFile ? '✓ Imagen cargada' : '📎 Subir imagen'}
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">Contenido</label>
+            <textarea value={contenido} onChange={(e) => setContenido(e.target.value)} rows={10}
+              className="w-full bg-black/20 border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm focus:border-sky-500 focus:outline-none transition-colors placeholder-gray-500 resize-none"
+              placeholder="Escribe el contenido aqu&iacute;..." />
+          </div>
+
+          <button onClick={handleSubmit} disabled={loading}
+            className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            {loading ? 'Publicando...' : 'Publicar en Blog'}
           </button>
-
-          {imagenFile && (
-            <button
-              type="button"
-              onClick={clearImage}
-              className="text-xs text-red-500 hover:underline"
-            >
-              Quitar
-            </button>
-          )}
         </div>
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          onChange={handleImageFile}
-          className="hidden"
-        />
-
-        {/* O bien, ingresar URL externa */}
-        {!imagenFile && (
-          <input
-            value={imagenPortada}
-            onChange={e => { setImagenPortada(e.target.value); setImagenPreview(e.target.value); }}
-            className="mt-2 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="O pega una URL externa: https://ejemplo.com/imagen.jpg"
-          />
-        )}
-
-        {/* Indicador de almacenamiento */}
-        {imagenFile && (
-          <p className="mt-1 text-xs text-blue-600">
-            ✅ La imagen se almacenará en la base de datos (Base64)
-          </p>
-        )}
-        {isBase64Image && imagenFile && (
-          <p className="text-xs text-gray-400">
-            Tamaño original: {(imagenFile.size / 1024).toFixed(1)} KB
-          </p>
-        )}
-      </div>
-
-      {/* Tags */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Tags <span className="text-xs text-gray-400">(separados por coma)</span>
-        </label>
-        <input
-          value={tags}
-          onChange={e => setTags(e.target.value)}
-          className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="info, aviso, clap"
-        />
-      </div>
-
-      {/* Previsualización */}
-      {(titulo || contenido || imagenPreview || tags) && (
-        <div className="border rounded-lg p-4 bg-gray-50">
-          <p className="text-xs text-gray-500 mb-2 font-medium">Vista previa</p>
-          {imagenPreview && (
-            <img
-              src={imagenPreview}
-              alt="Portada"
-              className="w-full h-40 object-cover rounded mb-3"
-            />
-          )}
-          {titulo    && <p className="font-bold text-gray-800">{titulo}</p>}
-          {contenido && <p className="text-sm text-gray-600 mt-1 line-clamp-3">{contenido}</p>}
-          {tags && (
-            <div className="flex gap-1 mt-2 flex-wrap">
-              {tags.split(',').map(t => t.trim()).filter(Boolean).map(tag => (
-                <span key={tag} className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-                  {tag}
-                </span>
-              ))}
+        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
+          <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Vista Previa</h3>
+          {titulo || contenido || imagenPreview || tags ? (
+            <div>
+              {imagenPreview && (
+                <img src={imagenPreview} alt="Portada"
+                  className="w-full h-48 object-cover rounded-xl mb-4"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              )}
+              {titulo && <h2 className="text-white text-2xl font-bold mb-3">{titulo}</h2>}
+              {previewTags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {previewTags.map((t, i) => (
+                    <span key={i} className="px-2.5 py-0.5 bg-sky-500/10 text-sky-400 rounded-full text-xs">{t}</span>
+                  ))}
+                </div>
+              )}
+              {contenido ? (
+                <div className="text-gray-300 leading-relaxed whitespace-pre-wrap">{contenido}</div>
+              ) : (
+                <p className="text-gray-500 italic">El contenido se mostrar&aacute; aqu&iacute;...</p>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-64 text-gray-500">
+              <p className="text-sm">Escribe en el formulario para ver la vista previa</p>
             </div>
           )}
         </div>
-      )}
-
-      {/* Botón enviar */}
-      <button
-        type="button"
-        onClick={handleSubmit}
-        disabled={loading}
-        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-medium py-2 rounded-lg transition-colors text-sm"
-      >
-        {loading ? 'Publicando...' : 'Publicar post'}
-      </button>
+      </div>
     </div>
   );
 }

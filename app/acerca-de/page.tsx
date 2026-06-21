@@ -10,12 +10,17 @@ export default function AcercaDe() {
         <main className="box-content flex-1 flex flex-col items-center justify-center">
             <section className="bg-gray-200/70 backdrop-blur-sm rounded-2xl shadow-2xl p-2 md:p-6 max-w-3/4 w-full h-auto text-gray-800">
                 {/* Encabezado */}
-                <header className="border-sky-200 pb-4 mb-4 text-center">
+                <header className="border-sky-200 pb-4 text-center">
                     <h1 className="text-3xl md:text-4xl font-bold text-sky-700 italic">
                         Sobre el Proyecto
                     </h1>
-                    <p className="text-sm text-gray-500 mt-2 uppercase tracking-widest">
+                    <p className="text-sm text-gray-600 mt-2 mb-2 uppercase tracking-widest">
                         Comuna Una Sola Fuerza - Reina La Cruz
+                    </p>
+                    <p className="leading-relaxed">
+                        Trabajo Especial como Requisito para Optar al
+                        Certificado de Desarrollador de Software - UNETI
+                        Trayecto 3 - Ingeniería de Informática.
                     </p>
                 </header>
 
@@ -42,8 +47,14 @@ export default function AcercaDe() {
                                 Objetivos Clave
                             </h3>
                             <ul className="list-disc list-inside text-sm space-y-1">
-                                <li>Automatizar registros.</li>
-                                <li>Garantizar equidad en la distribución.</li>
+                                <li>
+                                    Agilizar los procesos de registro e
+                                    incidencias.
+                                </li>
+                                <li>
+                                    Garantizar transparencia de la gestión.
+                                    comunal
+                                </li>
                                 <li>Mejora del tiempo administrativo.</li>
                                 <li>Fortalecer el control social.</li>
                             </ul>
@@ -66,9 +77,12 @@ export default function AcercaDe() {
 
                     {/* Sección de Participantes */}
                     <div className="pt-4 border-t border-gray-100">
-                        <h3 className="text-center font-bold text-gray-700 mb-4">
+                        <h3 className="text-center font-bold text-gray-700  mb-2">
                             Equipo de Desarrollo (Equipo 9)
                         </h3>
+                        <p className="text-sm text-black bold text-center tracking-widest mb-2">
+                            Ingenieros en Formación:
+                        </p>
                         <div className="flex flex-wrap justify-center gap-4 text-xs md:text-sm font-medium">
                             <span className="bg-white px-3 py-1 rounded-full shadow-sm">
                                 Andrés Luna

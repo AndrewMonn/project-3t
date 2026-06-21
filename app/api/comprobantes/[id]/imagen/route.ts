@@ -14,13 +14,13 @@ import { withRole, jsonResponse } from '@/lib/auth';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await withRole(req, ['administrador', 'vocero']);
     if (!authResult.success) return authResult.response;
 
-    const { id } = params;
+    const { id } = await params;
     if (!Types.ObjectId.isValid(id)) {
       return jsonResponse(false, null, 'ID de comprobante inválido', 400);
     }

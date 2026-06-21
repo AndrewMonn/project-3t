@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function NavBurger() {
     const [isOpen, setIsOpen] = useState(false);
@@ -41,12 +42,17 @@ export default function NavBurger() {
         <header className="flex justify-between items-center sticky top-0 w-full text-white pt-4 pr-10 pl-10 z-20 pb-1.5 bg-mauve-600/40 shadow-lg">
             <Link
                 href="/"
-                className="px-4 py-2 rounded-md hover:text-cyan-200 transition-colors hover:shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]
-    active:scale-95"
+                className="flex items-center gap-3 px-4 py-2 rounded-md hover:text-cyan-200 transition-colors hover:shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] active:scale-95"
             >
-                <h1 className="flex justify-self-center text-2xl font-bold box-content">
-                    Aplicación Web Comunal
-                </h1>
+                <Image
+                    src="/images/Logo-CComunal.png"
+                    alt="Logo Comunal"
+                    width={36}
+                    height={36}
+                    className="w-auto shrink-0"
+                    priority
+                />
+                <h1 className="text-2xl font-bold">Aplicación Web Comunal</h1>
             </Link>
 
             {/* Desktop & Tablet Navigation (md y superior) */}
