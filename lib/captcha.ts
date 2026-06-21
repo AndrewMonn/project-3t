@@ -46,17 +46,28 @@ export async function verifyCaptcha(token: string, ip?: string): Promise<boolean
 
 /**
  * Extrae la IP real del cliente desde los headers de Next.js.
- * Considera proxies/CDN (Vercel, Nginx, Cloudflare).
+ * Soporta: Vercel, Nginx, Cloudflare, Akamai, AWS, Fastly, y el socket TCP directo.
  */
 export function getClientIp(req: Request): string {
   const headers = (req as any).headers;
   const get = (name: string): string =>
     (typeof headers.get === 'function' ? headers.get(name) : headers[name]) || '';
 
-  return (
+  const raw =
     get('x-real-ip') ||
-    get('cf-connecting-ip') ||          // Cloudflare
-    (get('x-forwarded-for').split(',')[0] || '').trim() ||
-    '0.0.0.0'
-  );
+    get('cf-connecting-ip') ||                     // Cloudflare
+    (get('x-forwarded-for').split(',')[0] || '').trim() ||  // Proxy/CDN general
+    get('x-vercel-forwarded-for') ||               // Vercel
+    get('true-client-ip') ||                       // Akamai
+    get('x-client-ip') ||                          // Varios
+    get('x-forwarded') ||
+    get('forwarded-for') ||                        // RFC 7239
+    get('x-cluster-client-ip') ||                  // AWS
+    get('fastly-client-ip') ||                     // Fastly
+    (req as any)?.socket?.remoteAddress ||
+    (req as any)?.connection?.remoteAddress ||
+    (req as any)?.info?.remoteAddress ||
+    '0.0.0.0';
+
+  return raw.replace(/^::ffff:/, '');
 }

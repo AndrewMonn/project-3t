@@ -196,7 +196,7 @@ export default function LoginAuditPanel() {
                       <p className="text-gray-500 text-xs">{r.email}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="font-mono text-xs text-gray-300">{r.ip}</span>
+                      <span className="font-mono text-xs text-gray-200 bg-white/5 px-2 py-0.5 rounded-lg">{r.ip.replace(/^::ffff:/, '')}</span>
                       {r.esPrimeraIpParaUsuario && (
                         <span className="ml-2 text-xs bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full">
                           Nueva

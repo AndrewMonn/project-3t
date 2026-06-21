@@ -55,25 +55,18 @@ function PostModal({ post, onClose }: { post: Post; onClose: () => void }) {
             className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4"
             onClick={handleBackdrop}
         >
-            <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl">
-                {/* Hero banner */}
+            <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl max-w-3xl w-full max-h-[85vh] overflow-y-auto shadow-2xl">
                 {post.imagenPortada ? (
-                    <div className="relative w-full h-64 sm:h-85 shrink-0">
-                        <Image
-                            src={post.imagenPortada}
-                            alt={post.titulo}
-                            fill
-                            className="object-cover border rounded-2xl"
-                            priority
-                        />
-                        <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent" />
-                    </div>
+                    <img
+                        src={post.imagenPortada}
+                        alt={post.titulo}
+                        className="w-full max-h-[65vh] object-contain rounded-t-2xl bg-black/20"
+                    />
                 ) : (
-                    <div className="h-32 bg-linear-to-r from-cyan-600 to-blue-600 shrink-0" />
+                    <div className="h-32 bg-linear-to-r from-cyan-600 to-blue-600" />
                 )}
 
-                {/* Contenido scrolleable */}
-                <div className="modal-content p-6 sm:p-8 -mt-8 relative overflow-y-auto flex-1">
+                <div className="p-6 sm:p-8">
                     <div className="flex flex-wrap gap-2 mb-3">
                         {post.tags.map((tag) => (
                             <span
@@ -107,16 +100,15 @@ function PostModal({ post, onClose }: { post: Post; onClose: () => void }) {
                     <div className="text-zinc-300 leading-relaxed whitespace-pre-wrap">
                         {post.contenido}
                     </div>
-                </div>
 
-                {/* Cerrar */}
-                <div className="px-6 sm:px-8 pb-6 shrink-0">
-                    <button
-                        onClick={onClose}
-                        className="w-full py-2.5 bg-white/5 backdrop-blur-md border border-white/10 text-zinc-300 rounded-xl hover:bg-white/10 hover:text-cyan-200 transition-all duration-300"
-                    >
-                        Cerrar
-                    </button>
+                    <div className="mt-6">
+                        <button
+                            onClick={onClose}
+                            className="w-full py-2.5 bg-white/5 backdrop-blur-md border border-white/10 text-zinc-300 rounded-xl hover:bg-white/10 hover:text-cyan-200 transition-all duration-300"
+                        >
+                            Cerrar
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
